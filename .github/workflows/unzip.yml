@@ -1,0 +1,26 @@
+name: Unzip project
+on:
+  push:
+    paths:
+      - '.github/workflows/unzip.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract
+        run: |
+          ls
+          unzip -q ./*.zip
+          rsync -a MadrasaWeb-main/ ./
+          rm -rf MadrasaWeb-main ./*.zip
+      - name: Push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "Add project files"
+          git push
