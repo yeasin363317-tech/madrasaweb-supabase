@@ -1,0 +1,19 @@
+name: Unzip project
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          unzip -q MadrasaWeb-supabase.zip
+          rsync -a MadrasaWeb-main/ ./
+          rm -rf MadrasaWeb-main MadrasaWeb-supabase.zip
+      - run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "Add project files"
+          git push
