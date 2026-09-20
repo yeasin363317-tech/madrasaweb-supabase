@@ -94,7 +94,7 @@ export default function AdminWebsiteSettings() {
         <div className="card-base p-6">
           <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-wide border-b border-border pb-3 mb-4">Admin Credentials</h3>
           <p className="text-sm text-muted-foreground bg-secondary p-3 rounded-lg">
-            Admin credentials are managed in Supabase (Authentication > Users). To change the admin password, use the Supabase dashboard.
+            Admin credentials are managed in Supabase (Authentication → Users). To change the admin password, use the Supabase dashboard.
           </p>
         </div>
 
