@@ -2,6 +2,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useData } from '@/contexts/DataContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import PageHeader from '@/components/layout/PageHeader';
 import { Shield } from 'lucide-react';
 
 export default function PrivacyPolicy() {
@@ -14,11 +15,7 @@ export default function PrivacyPolicy() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="bg-primary pattern-bg py-14 px-4 text-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
-          {t('গোপনীয়তা নীতি', 'Privacy Policy')}
-        </h1>
-      </div>
+      <PageHeader title={t('গোপনীয়তা নীতি', 'Privacy Policy')} />
 
       <div className="section-padding">
         <div className="container-max max-w-3xl">

@@ -3,6 +3,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useData } from '@/contexts/DataContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import Reveal from '@/components/features/Reveal';
+import PageHeader from '@/components/layout/PageHeader';
 
 export default function Contact() {
   const { t } = useLanguage();
@@ -46,14 +48,7 @@ export default function Contact() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="bg-primary pattern-bg py-14 px-4 text-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
-          {t('যোগাযোগ', 'Contact Us')}
-        </h1>
-        <p className="text-white/75 text-sm">
-          {t('আমাদের সাথে যোগাযোগ করুন', 'Get in touch with us')}
-        </p>
-      </div>
+      <PageHeader title={t('যোগাযোগ', 'Contact Us')} subtitle={t('আমাদের সাথে যোগাযোগ করুন', 'Get in touch with us')} />
 
       <div className="section-padding">
         <div className="container-max">
@@ -66,9 +61,10 @@ export default function Contact() {
               {contacts.map((c, i) => {
                 const Icon = c.icon;
                 return (
-                  <div key={i} className="card-base p-5 flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      <Icon size={18} className="text-primary" />
+                  <Reveal key={i} delay={i * 70}>
+                  <div className="card-base p-5 flex items-start gap-4">
+                    <div className="w-11 h-11 rounded-xl tint tint-green flex items-center justify-center shrink-0 hover:!transform-none">
+                      <Icon size={18} />
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground mb-0.5">{c.label}</p>
@@ -81,12 +77,13 @@ export default function Contact() {
                       )}
                     </div>
                   </div>
+                  </Reveal>
                 );
               })}
             </div>
 
             {/* Map */}
-            <div>
+            <Reveal variant="right">
               <h2 className="text-xl font-bold text-foreground mb-6">
                 {t('মানচিত্রে আমাদের অবস্থান', 'Our Location on Map')}
               </h2>
@@ -110,7 +107,7 @@ export default function Contact() {
                   </div>
                 )}
               </div>
-            </div>
+            </Reveal>
           </div>
         </div>
       </div>

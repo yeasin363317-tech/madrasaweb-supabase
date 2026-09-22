@@ -3,6 +3,7 @@ import AdminLayout from '@/components/layout/AdminLayout';
 import { Users, FileText, Bell, Image, MessageSquare, GraduationCap, Edit3, Check, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import NumberInput from '@/components/features/NumberInput';
 import { useNavigate } from 'react-router-dom';
 
 interface ClickableStatCardProps {
@@ -48,7 +49,7 @@ export default function AdminDashboard() {
   const { data, saveMadrasaInfo } = useData();
   const navigate = useNavigate();
   const [editingStudents, setEditingStudents] = useState(false);
-  const [studentCount, setStudentCount] = useState(data.madrasaInfo.totalStudents);
+  const [studentCount, setStudentCount] = useState<number | ''>(data.madrasaInfo.totalStudents);
   const [saving, setSaving] = useState(false);
 
   const publishedResults = data.results.filter(r => r.published).length;
@@ -58,7 +59,7 @@ export default function AdminDashboard() {
   const saveStudentCount = async () => {
     setSaving(true);
     try {
-      await saveMadrasaInfo({ ...data.madrasaInfo, totalStudents: studentCount });
+      await saveMadrasaInfo({ ...data.madrasaInfo, totalStudents: Number(studentCount) || 0 });
       setEditingStudents(false);
       toast.success('Student count updated');
     } catch (e: unknown) {
@@ -114,9 +115,12 @@ export default function AdminDashboard() {
           />
 
           {/* Total Students — editable inline, also clickable to madrasa info */}
-          <button
+          <div
+            role="button"
+            tabIndex={0}
             onClick={() => navigate('/admin/madrasa-info')}
-            className="card-base p-5 text-left w-full group hover:border-primary/40 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 border border-green-100"
+            onKeyDown={e => { if (e.key === 'Enter') navigate('/admin/madrasa-info'); }}
+            className="card-base p-5 text-left w-full group cursor-pointer hover:border-primary/40 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 border border-green-100"
           >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-green-100 text-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
@@ -125,12 +129,12 @@ export default function AdminDashboard() {
               <div className="flex-1" onClick={e => e.stopPropagation()}>
                 {editingStudents ? (
                   <div className="flex items-center gap-2">
-                    <input
-                      type="number"
+                    <NumberInput
                       value={studentCount}
-                      onChange={e => setStudentCount(Number(e.target.value))}
+                      onChange={setStudentCount}
                       className="input-base py-1.5 text-lg font-bold w-24"
                       min={0}
+                      autoFocus
                       onClick={e => e.stopPropagation()}
                     />
                     <button
@@ -156,7 +160,7 @@ export default function AdminDashboard() {
               </div>
               <ChevronRight size={16} className="text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200 shrink-0" />
             </div>
-          </button>
+          </div>
         </div>
 
         {/* Recent Complaints — each row clickable */}

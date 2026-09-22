@@ -5,11 +5,12 @@ import { useData } from '@/contexts/DataContext';
 import { generateId } from '@/lib/storage';
 import { toast } from 'sonner';
 import FileUpload from '@/components/features/FileUpload';
+import { todayLocal } from '@/lib/utils';
 import type { Notice } from '@/types';
 
 const emptyNotice = () => ({
   title_bn: '', title_en: '', description_bn: '', description_en: '',
-  date: new Date().toISOString().split('T')[0], attachment: '', published: false,
+  date: todayLocal(), attachment: '', published: false,
 });
 
 export default function AdminNotices() {

@@ -2,7 +2,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useData } from '@/contexts/DataContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import PageHeader from '@/components/layout/PageHeader';
 import TeacherCard from '@/components/features/TeacherCard';
+import Reveal from '@/components/features/Reveal';
 import { Users } from 'lucide-react';
 
 export default function Teachers() {
@@ -11,17 +13,10 @@ export default function Teachers() {
   const { teachers } = data;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-clip">
       <Navbar />
 
-      <div className="bg-primary pattern-bg py-14 px-4 text-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
-          {t('শিক্ষকমণ্ডলী', 'Teaching Staff')}
-        </h1>
-        <p className="text-white/75 text-sm">
-          {t('আমাদের অভিজ্ঞ ও যোগ্য শিক্ষকবৃন্দ', 'Our experienced and qualified teachers')}
-        </p>
-      </div>
+      <PageHeader title={t('শিক্ষকমণ্ডলী', 'Teaching Staff')} subtitle={t('আমাদের অভিজ্ঞ ও যোগ্য শিক্ষকবৃন্দ', 'Our experienced and qualified teachers')} />
 
       <div className="section-padding">
         <div className="container-max">
@@ -37,8 +32,10 @@ export default function Teachers() {
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {teachers.map(teacher => (
-                <TeacherCard key={teacher.id} teacher={teacher} />
+              {teachers.map((teacher, i) => (
+                <Reveal key={teacher.id} delay={Math.min(i, 7) * 80} className="h-full">
+                  <TeacherCard teacher={teacher} />
+                </Reveal>
               ))}
             </div>
           )}

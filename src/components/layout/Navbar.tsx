@@ -1,187 +1,191 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { Menu, X, Phone, Mail, BookOpen, ShieldCheck, Code2 } from 'lucide-react';
+import {
+  Menu, X, BookOpen, ShieldCheck, Code2,
+  Home, Info, Users, GraduationCap, Bell, Images, Phone, MessageSquare,
+} from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useData } from '@/contexts/DataContext';
 import LanguageToggle from '@/components/features/LanguageToggle';
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [progress, setProgress] = useState(0);
   const { t } = useLanguage();
   const { data } = useData();
   const location = useLocation();
 
-  // Fix: scroll to top whenever route changes
+  // Scroll to top whenever the route changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
     setMobileOpen(false);
   }, [location.pathname]);
 
-  const navLinks = [
-    { to: '/', label: t('হোম', 'Home') },
-    { to: '/about', label: t('মাদ্রাসা পরিচিতি', 'About') },
-    { to: '/teachers', label: t('শিক্ষকমণ্ডলী', 'Teachers') },
-    { to: '/results', label: t('ফলাফল', 'Results') },
-    { to: '/notices', label: t('নোটিশ বোর্ড', 'Notices') },
-    { to: '/gallery', label: t('গ্যালারি', 'Gallery') },
-    { to: '/contact', label: t('যোগাযোগ', 'Contact') },
-  ];
+  // Shadow + reading progress
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 12);
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(h > 0 ? Math.min(100, Math.round((y / h) * 100)) : 0);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
-  const adminLink = { to: '/admin/login', label: t('প্রশাসন', 'Admin Panel') };
+  const navLinks = [
+    { to: '/', label: t('হোম', 'Home'), icon: Home },
+    { to: '/about', label: t('পরিচিতি', 'About'), icon: Info },
+    { to: '/teachers', label: t('শিক্ষকমণ্ডলী', 'Teachers'), icon: Users },
+    { to: '/results', label: t('ফলাফল', 'Results'), icon: GraduationCap },
+    { to: '/notices', label: t('নোটিশ', 'Notices'), icon: Bell },
+    { to: '/gallery', label: t('গ্যালারি', 'Gallery'), icon: Images },
+    { to: '/contact', label: t('যোগাযোগ', 'Contact'), icon: Phone },
+    { to: '/complaint', label: t('অভিযোগ', 'Complaint'), icon: MessageSquare },
+  ];
 
   const isActive = (to: string) => location.pathname === to;
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-border">
-      {/* Top bar */}
-      <div className="bg-primary text-primary-foreground py-1.5 px-4">
-        <div className="container-max flex items-center justify-between text-xs gap-4">
-          <div className="flex items-center gap-4 flex-wrap">
-            <a href={`tel:${data.madrasaInfo.phone1}`} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
-              <Phone size={11} />
-              <span>{data.madrasaInfo.phone1}</span>
-            </a>
-            <a href={`mailto:${data.madrasaInfo.email}`} className="flex items-center gap-1.5 hover:opacity-80 transition-opacity hidden sm:flex">
-              <Mail size={11} />
-              <span>{data.madrasaInfo.email}</span>
-            </a>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Developer Credit Badge — top bar (desktop) */}
-            <a
-              href="https://yeasin363317-tech.github.io/Developer-Yeasin-Official/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="dev-credit-sweep relative overflow-hidden hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold transition-opacity hover:opacity-80"
-              style={{
-                background: 'rgba(255,255,255,0.12)',
-                border: '1px solid rgba(255,255,255,0.22)',
-                backdropFilter: 'blur(6px)',
-                color: 'rgba(255,255,255,0.80)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)',
-              }}
-            >
-              <Code2 size={10} style={{ color: 'rgba(134,239,172,0.9)' }} />
-              <span>Dev:</span>
-              <span style={{ color: 'rgba(187,247,208,1)', fontWeight: 700 }}>Yeasin Arafat</span>
-            </a>
-            <LanguageToggle />
-          </div>
-        </div>
-      </div>
-
-      {/* Main nav */}
-      <div className="px-4 py-3">
-        <div className="container-max flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group">
-            {data.madrasaInfo.logo ? (
-              <img src={data.madrasaInfo.logo} alt="logo" className="w-10 h-10 rounded-full object-cover" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                <BookOpen size={20} className="text-primary-foreground" />
-              </div>
-            )}
-            <div className="hidden sm:block">
-              <p className="text-sm font-bold text-primary leading-tight">
-                {t(data.madrasaInfo.name_bn, data.madrasaInfo.name_en)}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t('ফাজিল মাদ্রাসা', 'Fazil Madrasa')}
-              </p>
+    <header
+      className={`sticky top-0 z-50 border-b transition-all duration-300 ${
+        scrolled
+          ? 'bg-white/90 backdrop-blur-md border-border shadow-[0_4px_20px_rgba(16,24,40,0.07)]'
+          : 'bg-white border-transparent'
+      }`}
+    >
+      <div
+        className={`max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between gap-4 transition-all duration-300 ${
+          scrolled ? 'h-14 md:h-16' : 'h-16 md:h-[76px]'
+        }`}
+      >
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-3 min-w-0 group">
+          {data.madrasaInfo.logo ? (
+            <img
+              src={data.madrasaInfo.logo}
+              alt="logo"
+              className="w-10 h-10 md:w-11 md:h-11 rounded-full object-cover shrink-0 transition-transform duration-300 group-hover:rotate-6"
+            />
+          ) : (
+            <div className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-primary flex items-center justify-center shrink-0">
+              <BookOpen size={20} className="text-primary-foreground" />
             </div>
-          </Link>
+          )}
+          <div className="min-w-0">
+            <p className="text-sm md:text-base font-bold text-foreground leading-tight truncate max-w-[200px] sm:max-w-[320px]">
+              {t(data.madrasaInfo.name_bn, data.madrasaInfo.name_en)}
+            </p>
+            <p className="text-[11px] md:text-xs text-muted-foreground">
+              {t('ফাজিল মাদ্রাসা', 'Fazil Madrasa')}
+            </p>
+          </div>
+        </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-1">
-            {navLinks.map(link => (
+        {/* Desktop nav */}
+        <nav className="hidden xl:flex items-center gap-1">
+          {navLinks.map(link => {
+            const Icon = link.icon;
+            return (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                   isActive(link.to)
                     ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-foreground hover:bg-accent hover:text-accent-foreground hover:-translate-y-px'
+                    : 'text-foreground/80 hover:bg-secondary hover:text-primary'
                 }`}
               >
+                <Icon size={15} />
                 {link.label}
               </Link>
-            ))}
-            <Link
-              to={adminLink.to}
-              className="ml-1 flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all duration-200 border border-border hover:border-primary/40 hover:-translate-y-px"
-            >
-              <ShieldCheck size={14} />
-              {adminLink.label}
-            </Link>
-          </nav>
+            );
+          })}
+        </nav>
 
-          {/* Mobile toggle */}
+        <div className="flex items-center gap-2 shrink-0">
+          <LanguageToggle />
+          <Link
+            to="/admin/login"
+            className="hidden xl:flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium text-muted-foreground border border-border hover:border-primary/40 hover:text-primary transition-all duration-200"
+          >
+            <ShieldCheck size={15} />
+            {t('এডমিন', 'Admin')}
+          </Link>
           <button
-            className="lg:hidden p-2 rounded-lg hover:bg-accent transition-colors"
+            className="xl:hidden p-2 rounded-xl hover:bg-secondary transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="lg:hidden bg-white border-t border-border px-4 py-3">
-          <nav className="flex flex-col gap-1">
-            {navLinks.map(link => (
+      {/* Mobile / tablet menu (animated open/close) */}
+      <div
+        className="xl:hidden grid bg-white"
+        style={{
+          gridTemplateRows: mobileOpen ? '1fr' : '0fr',
+          visibility: mobileOpen ? 'visible' : 'hidden',
+          transition: `grid-template-rows 300ms ease, visibility 0s linear ${mobileOpen ? '0s' : '300ms'}`,
+        }}
+      >
+        <div className="overflow-hidden">
+          <div className="border-t border-border px-4 py-3 shadow-lg">
+            <nav className="grid grid-cols-2 gap-2 max-w-xl mx-auto">
+              {navLinks.map(link => {
+                const Icon = link.icon;
+                return (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setMobileOpen(false)}
+                    className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
+                      isActive(link.to)
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary text-foreground hover:bg-accent'
+                    }`}
+                  >
+                    <Icon size={16} />
+                    {link.label}
+                  </Link>
+                );
+              })}
               <Link
-                key={link.to}
-                to={link.to}
+                to="/admin/login"
                 onClick={() => setMobileOpen(false)}
-                className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 ${
-                  isActive(link.to)
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-foreground hover:bg-accent'
-                }`}
+                className="col-span-2 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground border border-border"
               >
-                {link.label}
+                <ShieldCheck size={15} />
+                {t('এডমিন প্যানেল', 'Admin Panel')}
               </Link>
-            ))}
-            <Link
-              to="/complaint"
-              onClick={() => setMobileOpen(false)}
-              className="px-4 py-3 rounded-lg text-sm font-medium text-destructive hover:bg-red-50 transition-all duration-150"
-            >
-              {t('অভিযোগ', 'Complaint')}
-            </Link>
-            <Link
-              to="/admin/login"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent transition-all duration-150 border border-border mt-1"
-            >
-              <ShieldCheck size={14} />
-              {adminLink.label}
-            </Link>
-
-            {/* Developer Credit — mobile menu bottom */}
-            <div className="mt-2 pt-2 border-t border-border">
+            </nav>
+            <div className="mt-3 pt-3 border-t border-border text-center">
               <a
                 href="https://yeasin363317-tech.github.io/Developer-Yeasin-Official/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="dev-credit-sweep relative overflow-hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-opacity hover:opacity-70"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(145 63% 30% / 0.10) 0%, hsl(145 63% 30% / 0.05) 100%)',
-                  border: '1px solid hsl(145 63% 30% / 0.25)',
-                  color: 'hsl(145 63% 25%)',
-                }}
+                className="dev-credit-sweep relative overflow-hidden inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold bg-secondary border border-border"
               >
                 <Code2 size={11} className="text-primary" />
                 <span className="text-muted-foreground">Created By</span>
                 <span className="text-primary font-bold">Yeasin Arafat</span>
               </a>
             </div>
-          </nav>
+          </div>
         </div>
-      )}
+      </div>
+
+      {/* Reading progress */}
+      <div
+        className="absolute left-0 bottom-[-1px] h-[3px] w-full origin-left bg-gradient-to-r from-green-600 to-emerald-400 pointer-events-none"
+        style={{ transform: `scaleX(${progress / 100})`, transition: 'transform 120ms linear' }}
+        aria-hidden="true"
+      />
     </header>
   );
 }

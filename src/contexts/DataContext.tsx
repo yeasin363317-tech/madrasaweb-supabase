@@ -125,6 +125,7 @@ function rowToSettings(r: Record<string, unknown>): WebsiteSettings {
 interface DataContextType {
   data: AppData;
   loading: boolean;
+  dataReady: boolean;
   isAdmin: boolean;
   refreshData: () => Promise<void>;
   // Typed updaters for each section
@@ -137,6 +138,8 @@ interface DataContextType {
   saveResult: (result: Result, isEdit: boolean) => Promise<void>;
   deleteResult: (id: string) => Promise<void>;
   toggleResultPublished: (id: string, published: boolean) => Promise<void>;
+  setResultsPublished: (ids: string[], published: boolean) => Promise<void>;
+  deleteResults: (ids: string[]) => Promise<void>;
   saveNotice: (notice: Notice, isEdit: boolean) => Promise<void>;
   deleteNotice: (id: string) => Promise<void>;
   toggleNoticePublished: (id: string, published: boolean) => Promise<void>;
@@ -158,6 +161,7 @@ const DataContext = createContext<DataContextType | null>(null);
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<AppData>(EMPTY_DATA);
   const [loading, setLoading] = useState(true);
+  const [dataReady, setDataReady] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
   // Check auth session on mount
@@ -215,9 +219,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         termsConditions_en: (pagesRes.data as Record<string, unknown>)?.terms_en as string || '',
         adminCredentials: { email: '', password: '' },
       }));
+      setDataReady(true);
     } catch (err) {
       console.error('Failed to load data:', err);
       setLoading(false);
+      setDataReady(true);
     }
   }, []);
 
@@ -309,10 +315,44 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     await refreshData();
   }, [refreshData]);
 
-  const toggleResultPublished = useCallback(async (id: string, published: boolean) => {
-    const { error } = await supabase.from('results').update({ published }).eq('id', id);
-    if (error) throw error;
-    setData(prev => ({ ...prev, results: prev.results.map(r => r.id === id ? { ...r, published } : r) }));
+  // Bulk publish / unpublish. Uses one query per chunk and VERIFIES how many rows were really updated,
+  // because Postgres RLS silently updates 0 rows (no error) when the login session has expired.
+  const setResultsPublished = useCallback(async (ids: string[], published: boolean) => {
+    if (ids.length === 0) return;
+    const done = new Set<string>();
+    for (let i = 0; i < ids.length; i += 80) {
+      const chunk = ids.slice(i, i + 80);
+      const { data: updated, error } = await supabase
+        .from('results').update({ published }).in('id', chunk).select('id');
+      if (error) throw error;
+      (updated || []).forEach(r => done.add(r.id as string));
+    }
+    setData(prev => ({ ...prev, results: prev.results.map(r => done.has(r.id) ? { ...r, published } : r) }));
+    if (done.size !== ids.length) {
+      throw new Error(
+        done.size === 0
+          ? 'কোনো ফলাফল আপডেট হয়নি। লগইন সেশন শেষ হয়ে থাকতে পারে — আবার লগইন করুন। (Nothing updated — please login again)'
+          : `${ids.length} টির মধ্যে মাত্র ${done.size} টি আপডেট হয়েছে। (Only ${done.size} of ${ids.length} updated)`
+      );
+    }
+  }, []);
+
+  const toggleResultPublished = useCallback(
+    (id: string, published: boolean) => setResultsPublished([id], published),
+    [setResultsPublished]
+  );
+
+  const deleteResults = useCallback(async (ids: string[]) => {
+    if (ids.length === 0) return;
+    const removed = new Set<string>();
+    for (let i = 0; i < ids.length; i += 80) {
+      const chunk = ids.slice(i, i + 80);
+      const { data: deleted, error } = await supabase.from('results').delete().in('id', chunk).select('id');
+      if (error) throw error;
+      (deleted || []).forEach(r => removed.add(r.id as string));
+    }
+    setData(prev => ({ ...prev, results: prev.results.filter(r => !removed.has(r.id)) }));
+    if (removed.size !== ids.length) throw new Error(`${ids.length} টির মধ্যে ${removed.size} টি মুছেছে। লগইন সেশন চেক করুন।`);
   }, []);
 
   // Notices
@@ -458,12 +498,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <DataContext.Provider value={{
-      data, loading, isAdmin,
+      data, loading, dataReady, isAdmin,
       refreshData, setAdminStatus,
       saveTeacher, deleteTeacher,
       saveClass, deleteClass,
       saveSubject, deleteSubject,
-      saveResult, deleteResult, toggleResultPublished,
+      saveResult, deleteResult, toggleResultPublished, setResultsPublished, deleteResults,
       saveNotice, deleteNotice, toggleNoticePublished,
       saveGalleryItem, deleteGalleryItem,
       saveComplaint, deleteComplaint, toggleComplaintResolved,

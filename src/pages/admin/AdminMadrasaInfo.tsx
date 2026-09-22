@@ -4,6 +4,7 @@ import AdminLayout from '@/components/layout/AdminLayout';
 import { useData } from '@/contexts/DataContext';
 import { toast } from 'sonner';
 import FileUpload from '@/components/features/FileUpload';
+import NumberInput from '@/components/features/NumberInput';
 
 export default function AdminMadrasaInfo() {
   const { data, saveMadrasaInfo } = useData();
@@ -19,7 +20,7 @@ export default function AdminMadrasaInfo() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await saveMadrasaInfo(form);
+      await saveMadrasaInfo({ ...form, totalStudents: Number(form.totalStudents) || 0 });
       toast.success('Madrasa information saved');
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : 'Save failed');
@@ -84,7 +85,7 @@ export default function AdminMadrasaInfo() {
           </div>
           <div>
             <label className="label-base">Total Students (Manual)</label>
-            <input type="number" value={form.totalStudents} onChange={e => f('totalStudents', Number(e.target.value))} className="input-base w-40" min={0} />
+            <NumberInput value={form.totalStudents} onChange={v => f('totalStudents', v)} className="input-base w-40" min={0} />
           </div>
         </div>
 

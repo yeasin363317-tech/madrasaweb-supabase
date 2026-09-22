@@ -1,6 +1,7 @@
-import { supabase } from '@/lib/supabase';
+import { supabase, REMEMBER_KEY } from '@/lib/supabase';
 
-export async function adminLogin(email: string, password: string): Promise<void> {
+export async function adminLogin(email: string, password: string, remember = true): Promise<void> {
+  try { localStorage.setItem(REMEMBER_KEY, String(remember)); } catch { /* ignore */ }
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
 }

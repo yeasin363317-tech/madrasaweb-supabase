@@ -1,15 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Lock, User, Eye, EyeOff, BookOpen, AlertCircle } from 'lucide-react';
-import { adminLogin } from '@/lib/auth';
+import { adminLogin, getAdminSession } from '@/lib/auth';
 import { toast } from 'sonner';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const EMAIL_KEY = 'madrasa-admin-email';
+  const [email, setEmail] = useState(() => {
+    try { return localStorage.getItem(EMAIL_KEY) || ''; } catch { return ''; }
+  });
   const [password, setPassword] = useState('');
   const [showPwd, setShowPwd] = useState(false);
-  const [remember, setRemember] = useState(false);
+  const [remember, setRemember] = useState(true);
+
+  // Already signed in (remembered session)? Skip the login form.
+  useEffect(() => {
+    getAdminSession().then(session => { if (session) navigate('/admin', { replace: true }); });
+  }, [navigate]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -18,7 +26,11 @@ export default function AdminLogin() {
     setError('');
     setLoading(true);
     try {
-      await adminLogin(email.trim(), password);
+      await adminLogin(email.trim(), password, remember);
+      try {
+        if (remember) localStorage.setItem(EMAIL_KEY, email.trim());
+        else localStorage.removeItem(EMAIL_KEY);
+      } catch { /* ignore */ }
       toast.success('Login successful');
       navigate('/admin');
     } catch (err: unknown) {
@@ -51,11 +63,11 @@ export default function AdminLogin() {
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="label-base">Email / Mobile</label>
+              <label className="label-base">Email</label>
               <div className="relative">
                 <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <input
-                  type="text"
+                  type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="admin@example.com"
@@ -98,7 +110,7 @@ export default function AdminLogin() {
                   onChange={e => setRemember(e.target.checked)}
                   className="w-4 h-4 accent-primary rounded"
                 />
-                <span className="text-foreground/70">Remember me</span>
+                <span className="text-foreground/70">Remember me (stay logged in)</span>
               </label>
             </div>
 

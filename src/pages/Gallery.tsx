@@ -4,6 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useData } from '@/contexts/DataContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import PageHeader from '@/components/layout/PageHeader';
 import { Image as ImageIcon, Video, X } from 'lucide-react';
 import type { GalleryItem } from '@/types';
 
@@ -93,14 +94,7 @@ export default function Gallery() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="bg-primary pattern-bg py-14 px-4 text-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-2">
-          {t('গ্যালারি', 'Gallery')}
-        </h1>
-        <p className="text-white/75 text-sm">
-          {t('ছবি ও ভিডিও সংগ্রহ', 'Photo and video collection')}
-        </p>
-      </div>
+      <PageHeader title={t('গ্যালারি', 'Gallery')} subtitle={t('ছবি ও ভিডিও সংগ্রহ', 'Photo and video collection')} />
 
       <div className="section-padding">
         <div className="container-max">

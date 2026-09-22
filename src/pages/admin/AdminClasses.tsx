@@ -5,12 +5,13 @@ import { useData } from '@/contexts/DataContext';
 import { generateId } from '@/lib/storage';
 import { toast } from 'sonner';
 import type { ClassItem } from '@/types';
+import NumberInput from '@/components/features/NumberInput';
 
 export default function AdminClasses() {
   const { data, saveClass, deleteClass } = useData();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<ClassItem | null>(null);
-  const [form, setForm] = useState({ name_bn: '', name_en: '', order: 0 });
+  const [form, setForm] = useState<{ name_bn: string; name_en: string; order: number | '' }>({ name_bn: '', name_en: '', order: 0 });
   const [saving, setSaving] = useState(false);
 
   const openAdd = () => { setEditing(null); setForm({ name_bn: '', name_en: '', order: data.classes.length + 1 }); setShowForm(true); };
@@ -20,7 +21,7 @@ export default function AdminClasses() {
     if (!form.name_bn) { toast.error('Name required'); return; }
     setSaving(true);
     try {
-      await saveClass({ ...form, id: editing?.id || generateId() }, !!editing);
+      await saveClass({ ...form, order: Number(form.order) || 0, id: editing?.id || generateId() }, !!editing);
       toast.success(editing ? 'Class updated' : 'Class added');
       setShowForm(false);
     } catch (e: unknown) {
@@ -31,7 +32,10 @@ export default function AdminClasses() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this class?')) return;
+    const linked = data.results.filter(r => r.classId === id).length;
+    if (!confirm(linked > 0
+      ? `এই ক্লাসে ${linked} টি ফলাফল আছে। ক্লাস মুছলে সেগুলো আর ক্লাসের সাথে যুক্ত থাকবে না। তবুও মুছবেন?`
+      : 'Delete this class?')) return;
     try {
       await deleteClass(id);
       toast.success('Deleted');
@@ -67,7 +71,7 @@ export default function AdminClasses() {
               </div>
               <div>
                 <label className="label-base">Order</label>
-                <input type="number" value={form.order} onChange={e => setForm(p => ({ ...p, order: Number(e.target.value) }))} className="input-base" />
+                <NumberInput value={form.order} onChange={v => setForm(p => ({ ...p, order: v }))} className="input-base" />
               </div>
               <div className="flex gap-3">
                 <button onClick={handleSave} disabled={saving} className="btn-primary flex-1 disabled:opacity-60">
